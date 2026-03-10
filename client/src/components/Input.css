@@ -1,0 +1,21 @@
+.custom-input {
+  height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background-color: var(--bg-tertiary);
+  font-family: inherit;
+  font-size: 15px;
+  padding: 0 16px;
+  color: var(--text-primary);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+  outline: none;
+}
+
+.custom-input::placeholder {
+  color: var(--text-muted);
+}
+
+.custom-input:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
