@@ -16,9 +16,9 @@ export default function LandingPage() {
       </div>
 
       <div style={{ position: 'absolute', top: '32px', right: '32px' }}>
-        <div style={{ background: '#fff', borderRadius: '999px', border: '1px solid var(--border)', padding: '4px', display: 'flex', gap: '4px' }}>
-          <span style={{ padding: '4px 12px', background: 'var(--accent-blue)', color: '#fff', borderRadius: '999px', fontSize: '13px', fontWeight: '600' }}>EN</span>
-          <span style={{ padding: '4px 12px', color: 'var(--text-secondary)', fontSize: '13px', fontWeight: '600' }}>HI</span>
+        <div style={{ background: 'var(--bg-secondary)', borderRadius: '999px', border: '1px solid var(--border)', padding: '4px', display: 'flex', gap: '4px' }}>
+          <span style={{ padding: '4px 12px', background: 'var(--accent-blue)', color: '#fff', borderRadius: '999px', fontSize: '13px', fontWeight: '700' }}>EN</span>
+          <span style={{ padding: '4px 12px', color: 'var(--text-primary)', fontSize: '13px', fontWeight: '700' }}>HI</span>
         </div>
       </div>
 
@@ -43,7 +43,7 @@ export default function LandingPage() {
 
         {/* Teacher Card */}
         <Card hover style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', borderTop: '4px solid var(--accent-purple)' }}>
-          <div style={{ background: '#F3E8FF', padding: '16px', borderRadius: '50%', marginBottom: '20px', color: 'var(--accent-purple)' }}>
+          <div style={{ background: 'rgba(139, 92, 246, 0.15)', padding: '16px', borderRadius: '50%', marginBottom: '20px', color: 'var(--accent-purple)' }}>
             <BookOpen size={32} />
           </div>
           <h2 style={{ marginBottom: '12px' }}>Teacher</h2>
@@ -53,7 +53,7 @@ export default function LandingPage() {
 
         {/* Admin Card */}
         <Card hover style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', borderTop: '4px solid var(--accent-orange)' }}>
-          <div style={{ background: '#FFEDD5', padding: '16px', borderRadius: '50%', marginBottom: '20px', color: 'var(--accent-orange)' }}>
+          <div style={{ background: 'rgba(245, 158, 11, 0.15)', padding: '16px', borderRadius: '50%', marginBottom: '20px', color: 'var(--accent-orange)' }}>
             <Shield size={32} />
           </div>
           <h2 style={{ marginBottom: '12px' }}>Admin</h2>

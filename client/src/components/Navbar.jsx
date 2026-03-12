@@ -5,7 +5,7 @@ export default function Navbar({ portal, title }) {
   return (
     <header style={{
       height: '56px',
-      backgroundColor: '#fff',
+      backgroundColor: 'var(--bg-secondary)',
       borderBottom: '1px solid var(--border)',
       display: 'flex',
       alignItems: 'center',
@@ -16,7 +16,7 @@ export default function Navbar({ portal, title }) {
       zIndex: 30
     }}>
       <div style={{ display: 'flex', alignItems: 'center' }}>
-        <h3 style={{ margin: 0, fontWeight: '500', color: 'var(--text-secondary)' }}>
+        <h3 style={{ margin: 0, fontWeight: '500', color: 'var(--text-muted)' }}>
           <span style={{ textTransform: 'capitalize' }}>{portal}</span> / <span style={{ color: 'var(--text-primary)', fontWeight: '600' }}>{title}</span>
         </h3>
       </div>

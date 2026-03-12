@@ -9,7 +9,7 @@ export default function Sidebar({ portal }) {
   const portalConfig = {
     student: {
       color: 'var(--accent-blue)',
-      bgActive: 'var(--accent-blue-light)',
+      bgActive: 'var(--portal-bg)',
       links: [
         { label: 'Home', path: '/student', icon: Home },
         { label: 'Doubt Solver', path: '/student/doubts', icon: Lightbulb },
@@ -21,7 +21,7 @@ export default function Sidebar({ portal }) {
     },
     teacher: {
       color: 'var(--accent-purple)',
-      bgActive: '#F3E8FF',
+      bgActive: 'var(--portal-bg)',
       links: [
         { label: 'Overview', path: '/teacher', icon: Presentation },
         { label: 'Quiz Generator', path: '/teacher/quiz', icon: FileText },
@@ -32,7 +32,7 @@ export default function Sidebar({ portal }) {
     },
     admin: {
       color: 'var(--accent-orange)',
-      bgActive: '#FFEDD5',
+      bgActive: 'var(--portal-bg)',
       links: [
         { label: 'Dashboard', path: '/admin', icon: BarChart3 },
         { label: 'Users', path: '/admin/users', icon: Users },
@@ -53,7 +53,7 @@ export default function Sidebar({ portal }) {
       position: 'fixed',
       left: 0,
       top: 0,
-      backgroundColor: '#fff',
+      backgroundColor: 'var(--bg-secondary)',
       borderRight: '1px solid var(--border)',
       display: 'flex',
       flexDirection: 'column',
@@ -61,7 +61,7 @@ export default function Sidebar({ portal }) {
     }}>
       <div style={{ height: '56px', display: 'flex', alignItems: 'center', padding: '0 24px', borderBottom: '1px solid var(--border)' }}>
         <GraduationCap size={24} color={config.color} style={{ marginRight: '8px' }} />
-        <span style={{ fontFamily: 'Fraunces', fontSize: '18px', fontWeight: '700', color: config.color }}>EduReach AI</span>
+        <span style={{ fontFamily: 'Fraunces', fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)' }}>EduReach AI</span>
       </div>
 
       <nav style={{ flex: 1, padding: '16px 8px', overflowY: 'auto' }}>

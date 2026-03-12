@@ -6,14 +6,14 @@ export default function Button({ children, variant = 'primary', className = '', 
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    height: '40px',
-    borderRadius: '12px',
-    fontSize: '14px',
-    fontWeight: '600',
+    height: '48px',
+    borderRadius: '999px',
+    fontSize: '15px',
+    fontWeight: '700',
     border: 'none',
     cursor: 'pointer',
     transition: 'transform 100ms ease, background-color 150ms ease, box-shadow 150ms ease',
-    padding: '0 16px',
+    padding: '0 24px',
     userSelect: 'none'
   };
 
@@ -21,12 +21,12 @@ export default function Button({ children, variant = 'primary', className = '', 
     primary: {
       backgroundColor: 'var(--accent-blue)',
       color: '#ffffff',
-      boxShadow: 'var(--shadow-sm)'
+      boxShadow: '0 4px 14px 0 rgba(225, 29, 116, 0.39)'
     },
     secondary: {
-      backgroundColor: '#ffffff',
-      color: 'var(--accent-blue)',
-      border: '1px solid var(--accent-blue)',
+      backgroundColor: 'transparent',
+      color: 'var(--text-primary)',
+      border: '2px solid var(--border)',
     },
     danger: {
       backgroundColor: 'var(--accent-red)',
