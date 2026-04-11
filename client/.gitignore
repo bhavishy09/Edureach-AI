@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.public
+.dist
+.node_modules
+node_modules/

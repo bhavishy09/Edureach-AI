@@ -1,17 +1,17 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
-// Auth Pages
+
 import LandingPage from './pages/auth/LandingPage';
 import StudentRegister from './pages/auth/StudentRegister';
 import TeacherLogin from './pages/auth/TeacherLogin';
 import AdminLogin from './pages/auth/AdminLogin';
 
-// Layout & Portals
+
 import PortalLayout from './components/PortalLayout';
 import StudentDashboard from './pages/student/StudentDashboard';
 
-// Teacher Portal
+
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
 import QuizGenerator from './pages/teacher/QuizGenerator';
 import TeacherAssignments from './pages/teacher/TeacherAssignments';
