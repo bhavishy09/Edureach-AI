@@ -21,6 +21,7 @@ import StudentProgress from './pages/teacher/StudentProgress';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UserManagement from './pages/admin/UserManagement';
 import FeatureToggles from './pages/admin/FeatureToggles';
+import SchoolCodes from './pages/admin/SchoolCodes';
 
 export default function App() {
   return (
@@ -49,6 +50,7 @@ export default function App() {
         <Route path="/admin/dashboard" element={<Navigate to="/admin" replace />} />
         <Route path="/admin/users" element={<PortalLayout portal="admin" title="User Management"><UserManagement /></PortalLayout>} />
         <Route path="/admin/toggles" element={<PortalLayout portal="admin" title="Feature Toggles"><FeatureToggles /></PortalLayout>} />
+        <Route path="/admin/schools" element={<PortalLayout portal="admin" title="School Codes"><SchoolCodes /></PortalLayout>} />
         <Route path="/admin/*" element={<PortalLayout portal="admin" title="Feature Setup">Feature coming soon</PortalLayout>} />
         
         <Route path="*" element={<Navigate to="/" replace />} />
