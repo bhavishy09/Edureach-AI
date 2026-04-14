@@ -1,0 +1,12 @@
+services:
+  valkey:
+    image: valkey/valkey
+    ports:
+     - 6379:6379
+
+# here we set up a redis server which 
+#will be used as a valkey backend to store 
+# the queue of tasks for RAG pipeline.
+
+# setup rq
+#pip install rq

@@ -9,6 +9,9 @@ import AdminLogin from './pages/auth/AdminLogin';
 
 import PortalLayout from './components/PortalLayout';
 import StudentDashboard from './pages/student/StudentDashboard';
+import DoubtSolver from './pages/student/DoubtSolver';
+import ExamPlanner from './pages/student/ExamPlanner';
+import NotesChatbot from './pages/student/NotesChatbot';
 
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
 import QuizGenerator from './pages/teacher/QuizGenerator';
@@ -34,6 +37,9 @@ export default function App() {
 
           {/* Student Portal */}
           <Route path="/student" element={<PortalLayout portal="student" title="Dashboard"><StudentDashboard /></PortalLayout>} />
+          <Route path="/student/doubts" element={<PortalLayout portal="student" title="Doubt Solver"><DoubtSolver /></PortalLayout>} />
+          <Route path="/student/notes" element={<PortalLayout portal="student" title="Notes & Chatbot"><NotesChatbot /></PortalLayout>} />
+          <Route path="/student/planner" element={<PortalLayout portal="student" title="Exam Planner"><ExamPlanner /></PortalLayout>} />
           <Route path="/student/*" element={<PortalLayout portal="student" title="Feature Setup">Feature coming soon</PortalLayout>} />
 
           {/* Teacher Portal */}
