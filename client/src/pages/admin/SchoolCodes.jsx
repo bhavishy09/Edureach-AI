@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { Building2, Plus, Copy, Check, Trash2, Search, Hash, ChevronDown, ChevronUp, Users } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Building2, Plus, Copy, Check, Trash2, Search, Hash, ChevronDown, ChevronUp, Users, Loader } from 'lucide-react';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
+import { createSchoolCode, getAllSchoolCodes, deleteSchoolCode as deleteSchoolCodeFromDB } from '../../lib/firestore';
 
 // Helper to generate a school code like "DPS-AGR"
 function generateCode(schoolName) {
@@ -19,35 +20,8 @@ function generateCode(schoolName) {
   return `${prefix}-${suffix}`;
 }
 
-const initialSchools = [
-  {
-    id: 1,
-    name: 'Delhi Public School, Agra',
-    code: 'DPS-AGR',
-    createdAt: '2026-03-20',
-    teachers: 12,
-    status: 'active',
-  },
-  {
-    id: 2,
-    name: 'Ryan International School',
-    code: 'RIS-0X7',
-    createdAt: '2026-04-01',
-    teachers: 8,
-    status: 'active',
-  },
-  {
-    id: 3,
-    name: 'Kendriya Vidyalaya, Lucknow',
-    code: 'KVL-M3P',
-    createdAt: '2026-04-10',
-    teachers: 5,
-    status: 'active',
-  },
-];
-
 export default function SchoolCodes() {
-  const [schools, setSchools] = useState(initialSchools);
+  const [schools, setSchools] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [schoolName, setSchoolName] = useState('');
   const [generatedCode, setGeneratedCode] = useState('');
@@ -55,26 +29,58 @@ export default function SchoolCodes() {
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedSchoolId, setExpandedSchoolId] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [loadingData, setLoadingData] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  // Load school codes from Firestore on mount
+  useEffect(() => {
+    loadSchools();
+  }, []);
+
+  const loadSchools = async () => {
+    setLoadingData(true);
+    try {
+      const data = await getAllSchoolCodes();
+      setSchools(data.map(s => ({
+        id: s.id,
+        name: s.school_name,
+        code: s.school_code,
+        createdAt: s.created_at?.toDate?.()
+          ? s.created_at.toDate().toISOString().split('T')[0]
+          : (s.created_at || 'N/A'),
+        teachers: s.teacher_count || 0,
+        status: s.status || 'active',
+      })));
+    } catch (err) {
+      console.error('Error loading school codes:', err);
+    } finally {
+      setLoadingData(false);
+    }
+  };
 
   const handleGenerateCode = () => {
     if (!schoolName.trim()) return;
     setGeneratedCode(generateCode(schoolName));
   };
 
-  const handleCreateSchool = () => {
+  const handleCreateSchool = async () => {
     if (!schoolName.trim() || !generatedCode) return;
-    const newSchool = {
-      id: Date.now(),
-      name: schoolName.trim(),
-      code: generatedCode,
-      createdAt: new Date().toISOString().split('T')[0],
-      teachers: 0,
-      status: 'active',
-    };
-    setSchools(prev => [newSchool, ...prev]);
-    setSchoolName('');
-    setGeneratedCode('');
-    setShowModal(false);
+    setSaving(true);
+    try {
+      await createSchoolCode({
+        school_code: generatedCode,
+        school_name: schoolName.trim(),
+      });
+      setSchoolName('');
+      setGeneratedCode('');
+      setShowModal(false);
+      await loadSchools(); // Refresh list from Firestore
+    } catch (err) {
+      console.error('Error creating school code:', err);
+      alert('Failed to create school code. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCopy = (code, id) => {
@@ -83,9 +89,15 @@ export default function SchoolCodes() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handleDelete = (id) => {
-    setSchools(prev => prev.filter(s => s.id !== id));
-    setDeleteConfirm(null);
+  const handleDelete = async (code) => {
+    try {
+      await deleteSchoolCodeFromDB(code);
+      setDeleteConfirm(null);
+      await loadSchools(); // Refresh list from Firestore
+    } catch (err) {
+      console.error('Error deleting school code:', err);
+      alert('Failed to delete school code.');
+    }
   };
 
   const filteredSchools = schools.filter(s =>
@@ -175,137 +187,150 @@ export default function SchoolCodes() {
         />
       </div>
 
+      {/* Loading State */}
+      {loadingData && (
+        <Card>
+          <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)' }}>
+            <Loader size={32} style={{ margin: '0 auto 16px', animation: 'spin 1s linear infinite' }} />
+            <p style={{ fontSize: '16px', margin: 0 }}>Loading school codes from Firestore...</p>
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          </div>
+        </Card>
+      )}
+
       {/* School Cards List */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {filteredSchools.length === 0 && (
-          <Card>
-            <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)' }}>
-              <Building2 size={48} style={{ margin: '0 auto 16px', opacity: 0.4 }} />
-              <p style={{ fontSize: '16px', margin: 0 }}>No schools found. Generate your first school code!</p>
-            </div>
-          </Card>
-        )}
-
-        {filteredSchools.map(school => (
-          <Card key={school.id} hover style={{ overflow: 'hidden', transition: 'all 200ms ease' }}>
-            <div
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
-              onClick={() => setExpandedSchoolId(expandedSchoolId === school.id ? null : school.id)}
-            >
-              {/* Left: School Info */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div style={{
-                  width: '48px', height: '48px', borderRadius: '12px',
-                  background: 'linear-gradient(135deg, rgba(245,158,11,0.2), rgba(139,92,246,0.2))',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0,
-                }}>
-                  <Building2 size={24} color="var(--accent-orange)" />
-                </div>
-                <div>
-                  <h3 style={{ margin: 0, fontSize: '16px', color: 'var(--text-primary)' }}>{school.name}</h3>
-                  <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--text-muted)' }}>
-                    Created: {school.createdAt} · {school.teachers} teacher{school.teachers !== 1 ? 's' : ''}
-                  </p>
-                </div>
+      {!loadingData && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {filteredSchools.length === 0 && (
+            <Card>
+              <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)' }}>
+                <Building2 size={48} style={{ margin: '0 auto 16px', opacity: 0.4 }} />
+                <p style={{ fontSize: '16px', margin: 0 }}>No schools found. Generate your first school code!</p>
               </div>
+            </Card>
+          )}
 
-              {/* Right: Code + Actions */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                {/* Code Badge */}
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: '8px',
-                  background: 'var(--bg-tertiary)', padding: '8px 16px',
-                  borderRadius: '8px', border: '1px solid var(--border)',
-                }}>
-                  <span style={{
-                    fontFamily: "'JetBrains Mono', monospace",
-                    fontSize: '15px', fontWeight: '600',
-                    color: 'var(--accent-orange)', letterSpacing: '0.08em',
+          {filteredSchools.map(school => (
+            <Card key={school.id} hover style={{ overflow: 'hidden', transition: 'all 200ms ease' }}>
+              <div
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
+                onClick={() => setExpandedSchoolId(expandedSchoolId === school.id ? null : school.id)}
+              >
+                {/* Left: School Info */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{
+                    width: '48px', height: '48px', borderRadius: '12px',
+                    background: 'linear-gradient(135deg, rgba(245,158,11,0.2), rgba(139,92,246,0.2))',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexShrink: 0,
                   }}>
-                    {school.code}
+                    <Building2 size={24} color="var(--accent-orange)" />
+                  </div>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '16px', color: 'var(--text-primary)' }}>{school.name}</h3>
+                    <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--text-muted)' }}>
+                      Created: {school.createdAt} · {school.teachers} teacher{school.teachers !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Right: Code + Actions */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  {/* Code Badge */}
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: '8px',
+                    background: 'var(--bg-tertiary)', padding: '8px 16px',
+                    borderRadius: '8px', border: '1px solid var(--border)',
+                  }}>
+                    <span style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: '15px', fontWeight: '600',
+                      color: 'var(--accent-orange)', letterSpacing: '0.08em',
+                    }}>
+                      {school.code}
+                    </span>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleCopy(school.code, school.id); }}
+                      title="Copy code"
+                      style={{
+                        background: 'none', border: 'none', cursor: 'pointer', padding: '4px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        borderRadius: '6px', transition: 'background 150ms ease',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                    >
+                      {copiedId === school.id ? <Check size={16} color="var(--accent-green)" /> : <Copy size={16} color="var(--text-muted)" />}
+                    </button>
+                  </div>
+
+                  {/* Status */}
+                  <span style={{
+                    fontSize: '12px', fontWeight: '600', padding: '4px 10px',
+                    borderRadius: '999px',
+                    background: school.status === 'active' ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)',
+                    color: school.status === 'active' ? 'var(--accent-green)' : 'var(--accent-red)',
+                    textTransform: 'uppercase', letterSpacing: '0.04em',
+                  }}>
+                    {school.status}
                   </span>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleCopy(school.code, school.id); }}
-                    title="Copy code"
-                    style={{
-                      background: 'none', border: 'none', cursor: 'pointer', padding: '4px',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      borderRadius: '6px', transition: 'background 150ms ease',
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'none'}
-                  >
-                    {copiedId === school.id ? <Check size={16} color="var(--accent-green)" /> : <Copy size={16} color="var(--text-muted)" />}
-                  </button>
-                </div>
 
-                {/* Status */}
-                <span style={{
-                  fontSize: '12px', fontWeight: '600', padding: '4px 10px',
-                  borderRadius: '999px',
-                  background: school.status === 'active' ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)',
-                  color: school.status === 'active' ? 'var(--accent-green)' : 'var(--accent-red)',
-                  textTransform: 'uppercase', letterSpacing: '0.04em',
+                  {/* Expand Arrow */}
+                  {expandedSchoolId === school.id
+                    ? <ChevronUp size={20} color="var(--text-muted)" />
+                    : <ChevronDown size={20} color="var(--text-muted)" />}
+                </div>
+              </div>
+
+              {/* Expanded Details */}
+              {expandedSchoolId === school.id && (
+                <div style={{
+                  marginTop: '20px', paddingTop: '20px',
+                  borderTop: '1px solid var(--border)',
+                  animation: 'fadeIn 200ms ease-out forwards',
                 }}>
-                  {school.status}
-                </span>
-
-                {/* Expand Arrow */}
-                {expandedSchoolId === school.id
-                  ? <ChevronUp size={20} color="var(--text-muted)" />
-                  : <ChevronDown size={20} color="var(--text-muted)" />}
-              </div>
-            </div>
-
-            {/* Expanded Details */}
-            {expandedSchoolId === school.id && (
-              <div style={{
-                marginTop: '20px', paddingTop: '20px',
-                borderTop: '1px solid var(--border)',
-                animation: 'fadeIn 200ms ease-out forwards',
-              }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '20px' }}>
-                  <div style={{ background: 'var(--bg-tertiary)', padding: '16px', borderRadius: '12px' }}>
-                    <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0 0 4px', textTransform: 'uppercase', fontWeight: '600' }}>School Code</p>
-                    <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '18px', color: 'var(--accent-orange)', margin: 0, fontWeight: '700' }}>{school.code}</p>
-                  </div>
-                  <div style={{ background: 'var(--bg-tertiary)', padding: '16px', borderRadius: '12px' }}>
-                    <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0 0 4px', textTransform: 'uppercase', fontWeight: '600' }}>Registered Teachers</p>
-                    <p style={{ fontSize: '18px', color: 'var(--text-primary)', margin: 0, fontWeight: '700' }}>{school.teachers}</p>
-                  </div>
-                  <div style={{ background: 'var(--bg-tertiary)', padding: '16px', borderRadius: '12px' }}>
-                    <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0 0 4px', textTransform: 'uppercase', fontWeight: '600' }}>Created On</p>
-                    <p style={{ fontSize: '18px', color: 'var(--text-primary)', margin: 0, fontWeight: '700' }}>{school.createdAt}</p>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                  <Button variant="secondary" onClick={(e) => { e.stopPropagation(); handleCopy(school.code, school.id); }} style={{ height: '40px', fontSize: '13px', gap: '6px' }}>
-                    {copiedId === school.id ? <Check size={14} /> : <Copy size={14} />}
-                    {copiedId === school.id ? 'Copied!' : 'Copy Code'}
-                  </Button>
-                  {deleteConfirm === school.id ? (
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <Button variant="danger" onClick={(e) => { e.stopPropagation(); handleDelete(school.id); }} style={{ height: '40px', fontSize: '13px' }}>
-                        Confirm Delete
-                      </Button>
-                      <Button variant="secondary" onClick={(e) => { e.stopPropagation(); setDeleteConfirm(null); }} style={{ height: '40px', fontSize: '13px' }}>
-                        Cancel
-                      </Button>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '20px' }}>
+                    <div style={{ background: 'var(--bg-tertiary)', padding: '16px', borderRadius: '12px' }}>
+                      <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0 0 4px', textTransform: 'uppercase', fontWeight: '600' }}>School Code</p>
+                      <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '18px', color: 'var(--accent-orange)', margin: 0, fontWeight: '700' }}>{school.code}</p>
                     </div>
-                  ) : (
-                    <Button variant="danger" onClick={(e) => { e.stopPropagation(); setDeleteConfirm(school.id); }} style={{ height: '40px', fontSize: '13px', gap: '6px' }}>
-                      <Trash2 size={14} />
-                      Delete
+                    <div style={{ background: 'var(--bg-tertiary)', padding: '16px', borderRadius: '12px' }}>
+                      <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0 0 4px', textTransform: 'uppercase', fontWeight: '600' }}>Registered Teachers</p>
+                      <p style={{ fontSize: '18px', color: 'var(--text-primary)', margin: 0, fontWeight: '700' }}>{school.teachers}</p>
+                    </div>
+                    <div style={{ background: 'var(--bg-tertiary)', padding: '16px', borderRadius: '12px' }}>
+                      <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0 0 4px', textTransform: 'uppercase', fontWeight: '600' }}>Created On</p>
+                      <p style={{ fontSize: '18px', color: 'var(--text-primary)', margin: 0, fontWeight: '700' }}>{school.createdAt}</p>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                    <Button variant="secondary" onClick={(e) => { e.stopPropagation(); handleCopy(school.code, school.id); }} style={{ height: '40px', fontSize: '13px', gap: '6px' }}>
+                      {copiedId === school.id ? <Check size={14} /> : <Copy size={14} />}
+                      {copiedId === school.id ? 'Copied!' : 'Copy Code'}
                     </Button>
-                  )}
+                    {deleteConfirm === school.id ? (
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <Button variant="danger" onClick={(e) => { e.stopPropagation(); handleDelete(school.code); }} style={{ height: '40px', fontSize: '13px' }}>
+                          Confirm Delete
+                        </Button>
+                        <Button variant="secondary" onClick={(e) => { e.stopPropagation(); setDeleteConfirm(null); }} style={{ height: '40px', fontSize: '13px' }}>
+                          Cancel
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button variant="danger" onClick={(e) => { e.stopPropagation(); setDeleteConfirm(school.id); }} style={{ height: '40px', fontSize: '13px', gap: '6px' }}>
+                        <Trash2 size={14} />
+                        Delete
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
-          </Card>
-        ))}
-      </div>
+              )}
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* ───── Generate Code Modal ───── */}
       {showModal && (
@@ -341,7 +366,7 @@ export default function SchoolCodes() {
               <div>
                 <h2 style={{ margin: 0, fontSize: '22px' }}>Generate School Code</h2>
                 <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--text-muted)' }}>
-                  Create a unique code for teacher login
+                  Create a unique code for teacher login · Saved to Firestore
                 </p>
               </div>
             </div>
@@ -420,10 +445,10 @@ export default function SchoolCodes() {
                 variant="orange"
                 onClick={handleCreateSchool}
                 style={{ flex: 1, gap: '8px' }}
-                disabled={!generatedCode}
+                disabled={!generatedCode || saving}
               >
                 <Plus size={16} />
-                Add School
+                {saving ? 'Saving...' : 'Add School'}
               </Button>
             </div>
           </div>

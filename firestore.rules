@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    function isStudent() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "student";
+    }
+    function isTeacher() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "teacher";
+    }
+    
+    // Users collection rules
+    match /users/{userId} {
+      // Users can read/write their own data
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      // Teachers can read student data for their school
+      allow read: if isTeacher() && resource.data.school_code == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.school_code;
+    }
+    
+    // School codes collection rules
+    match /school_codes/{codeId} {
+      // Anyone can verify if a school code exists (to register/login)
+      allow read: if true;
+      allow write: if true; // Allows Admin on client to create codes
+    }
+    
+    // Chat logs collection
+    match /chat_logs/{logId} {
+      // Users can only read their own chat logs
+      allow read: if isAuthenticated() && resource.data.user_id == request.auth.uid;
+      // Users can write chat logs
+      allow create: if isAuthenticated() && request.resource.data.user_id == request.auth.uid;
+      allow update, delete: if false; // Append only
+    }
+  }
+}

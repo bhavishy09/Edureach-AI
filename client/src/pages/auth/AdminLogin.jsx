@@ -4,10 +4,47 @@ import { Shield } from 'lucide-react';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function AdminLogin() {
   const navigate = useNavigate();
-  const [show2FA, setShow2FA] = useState(false);
+  const { loginAdmin } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    setError('');
+    if (!email || !password) {
+      setError('Please enter both email and password');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Call Flask API to validate admin credentials
+      const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        loginAdmin(); // Set admin session in AuthContext
+        navigate('/admin');
+      } else {
+        setError(data.message || 'Invalid admin credentials');
+      }
+    } catch (err) {
+      console.error('Admin Login Error:', err);
+      setError('Server error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="bg-dots flex-center" style={{ minHeight: '100vh', padding: '24px' }}>
@@ -21,29 +58,39 @@ export default function AdminLogin() {
             <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginTop: '8px' }}>Authorized personnel only</p>
           </div>
 
-          <div className="page-enter">
-            <Input label="Email Address" placeholder="admin@edureach.ai" type="email" />
-            <Input label="Password" type="password" placeholder="••••••••" />
-            
-            {!show2FA ? (
-              <Button variant="secondary" style={{ width: '100%', marginTop: '8px', marginBottom: '32px' }} onClick={() => setShow2FA(true)}>
-                Send 2FA Code
-              </Button>
-            ) : (
-              <div className="page-enter" style={{ marginTop: '16px', marginBottom: '32px' }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)' }}>Enter 6-digit OTP (JetBrains Mono)</label>
-                <div style={{ display: 'flex', gap: '8px', justifyContent: 'space-between' }}>
-                  {[1,2,3,4,5,6].map(i => (
-                    <input key={i} className="mono" maxLength={1} style={{
-                      width: '44px', height: '52px', fontSize: '20px', textAlign: 'center', borderRadius: '12px', border: '1px solid var(--border)', background: 'var(--bg-tertiary)'
-                    }} />
-                  ))}
-                </div>
-              </div>
-            )}
+          {/* Error Display */}
+          {error && (
+            <div style={{
+              padding: '12px 16px', background: 'rgba(239,68,68,0.12)', borderRadius: '10px',
+              marginBottom: '16px', fontSize: '14px', color: 'var(--accent-red)', fontWeight: '500'
+            }}>
+              {error}
+            </div>
+          )}
 
-            <Button variant="orange" style={{ width: '100%', marginBottom: '32px' }} onClick={() => navigate('/admin')}>
-              Secure Login
+          <div className="page-enter">
+            <Input
+              label="Email Address"
+              placeholder="admin@edureach.ai"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <Input
+              label="Password"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+
+            <Button
+              variant="orange"
+              style={{ width: '100%', marginTop: '8px', marginBottom: '32px' }}
+              onClick={handleLogin}
+              disabled={loading}
+            >
+              {loading ? 'Authenticating...' : 'Secure Login'}
             </Button>
           </div>
         </div>
