@@ -19,9 +19,26 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'default-secret-key')
 ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'admin@edureach.ai')
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123secure')
 
+from services.rag import worker
+
 # ─────────────────────────────────────────
 # API ROUTES
 # ─────────────────────────────────────────
+
+@app.route('/api/chat', methods=['POST'])
+def chat_endpoint():
+    data = request.get_json()
+    query = data.get('query', '')
+    page_context = data.get('page_context', '')
+    try:
+        response_text, sources = worker.process_query(query, page_context)
+        return jsonify({
+            "response": response_text,
+            "page_context": page_context,
+            "sources": sources
+        }), 200
+    except Exception as e:
+        return jsonify({'detail': str(e)}), 500
 
 @app.route('/api/admin/login', methods=['POST'])
 def admin_login():

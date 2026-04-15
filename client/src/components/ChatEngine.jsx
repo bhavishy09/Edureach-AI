@@ -27,7 +27,7 @@ export default function ChatEngine({ pageContext, title, description, icon: Icon
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:8000/chat', {
+      const res = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -36,10 +36,13 @@ export default function ChatEngine({ pageContext, title, description, icon: Icon
       });
       
       const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || 'Server returned an error');
+      }
       
       setMessages((prev) => [...prev, {
         role: 'bot',
-        content: data.response,
+        content: data.response || 'No response received.',
         sources: data.sources || []
       }]);
     } catch (err) {
@@ -101,7 +104,7 @@ export default function ChatEngine({ pageContext, title, description, icon: Icon
                 maxWidth: '75%',
                 color: msg.role === 'user' ? 'var(--accent-blue)' : 'var(--text-primary)'
               }}>
-                <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }} dangerouslySetInnerHTML={{ __html: msg.content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>') }} />
+                <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }} dangerouslySetInnerHTML={{ __html: (msg.content || '').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>') }} />
                 
                 {msg.sources && msg.sources.length > 0 && (
                   <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid var(--border)', fontSize: '12px', color: 'var(--text-muted)' }}>
