@@ -19,7 +19,15 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'default-secret-key')
 ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'admin@edureach.ai')
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123secure')
 
-from services.rag import worker
+from services.doubtsolver import worker as doubtsolver_worker
+from services.summarynotes import worker as summarynotes_worker
+from services.examplanner import worker as examplanner_worker
+
+WORKERS = {
+    'doubt_solver': doubtsolver_worker,
+    'short_notes': summarynotes_worker,
+    'exam_planner': examplanner_worker
+}
 
 # ─────────────────────────────────────────
 # API ROUTES
@@ -31,6 +39,11 @@ def chat_endpoint():
     query = data.get('query', '')
     page_context = data.get('page_context', '')
     try:
+        # Select the appropriate worker based on page_context
+        worker = WORKERS.get(page_context)
+        if not worker:
+            return jsonify({'detail': f'Unknown page context: {page_context}'}), 400
+        
         response_text, sources = worker.process_query(query, page_context)
         return jsonify({
             "response": response_text,
@@ -83,5 +96,5 @@ def catch_all(path):
     return render_template('index.html')
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    app.run(debug=True, port=5003)
   
