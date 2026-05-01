@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './contexts/AuthContext';
 
 import LandingPage from './pages/auth/LandingPage';
+import About from './pages/public/About';
 import StudentRegister from './pages/auth/StudentRegister';
 import TeacherLogin from './pages/auth/TeacherLogin';
 import AdminLogin from './pages/auth/AdminLogin';
@@ -31,6 +32,7 @@ export default function App() {
         <Routes>
           {/* Auth Routes */}
           <Route path="/" element={<LandingPage />} />
+          <Route path="/about" element={<About />} />
           <Route path="/register/student" element={<StudentRegister />} />
           <Route path="/login/teacher" element={<TeacherLogin />} />
           <Route path="/login/admin" element={<AdminLogin />} />

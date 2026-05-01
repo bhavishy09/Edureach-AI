@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, Link, useLocation } from 'react-router-dom';
 import { Home, Lightbulb, FileText, Calendar, ClipboardList, Settings, Presentation, ClipboardCheck, BarChart3, Users, ToggleLeft, Building2 } from 'lucide-react';
 import { GraduationCap } from 'lucide-react';
 
@@ -60,8 +60,10 @@ export default function Sidebar({ portal }) {
       zIndex: 40
     }}>
       <div style={{ height: '56px', display: 'flex', alignItems: 'center', padding: '0 24px', borderBottom: '1px solid var(--border)' }}>
-        <GraduationCap size={24} color={config.color} style={{ marginRight: '8px' }} />
-        <span style={{ fontFamily: 'Fraunces', fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)' }}>EduReach AI</span>
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+          <GraduationCap size={24} color={config.color} style={{ marginRight: '8px' }} />
+          <span style={{ fontFamily: 'Fraunces', fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)' }}>EduReach AI</span>
+        </Link>
       </div>
 
       <nav style={{ flex: 1, padding: '16px 8px', overflowY: 'auto' }}>

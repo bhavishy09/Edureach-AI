@@ -38,13 +38,37 @@ def chat_endpoint():
     data = request.get_json()
     query = data.get('query', '')
     page_context = data.get('page_context', '')
+    images = data.get('images', [])
+
+    image_data = None
+    image_mime_type = "image/jpeg"
+    
+    if images and len(images) > 0:
+        import base64
+        first_image = images[0]
+        # Format: data:image/png;base64,iVBORw0KGgo...
+        if first_image.startswith('data:'):
+            header, b64_data = first_image.split(',', 1)
+            image_mime_type = header.split(';')[0].split(':')[1]
+            image_data = base64.b64decode(b64_data)
+
     try:
         # Select the appropriate worker based on page_context
         worker = WORKERS.get(page_context)
         if not worker:
             return jsonify({'detail': f'Unknown page context: {page_context}'}), 400
         
-        response_text, sources = worker.process_query(query, page_context)
+        # Pass image data only to workers that support it
+        if page_context in ['doubt_solver', 'short_notes']:
+            response_text, sources = worker.process_query(
+                query, 
+                page_context, 
+                image_data=image_data, 
+                image_mime_type=image_mime_type
+            )
+        else:
+            response_text, sources = worker.process_query(query, page_context)
+            
         return jsonify({
             "response": response_text,
             "page_context": page_context,

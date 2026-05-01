@@ -1,6 +1,8 @@
 import React from 'react';
 import { Bell } from 'lucide-react';
 
+import { Link } from 'react-router-dom';
+
 export default function Navbar({ portal, title }) {
   return (
     <header style={{
@@ -22,6 +24,9 @@ export default function Navbar({ portal, title }) {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <Link to="/" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontWeight: '500', fontSize: '14px', marginRight: '8px', transition: 'color 0.2s ease' }} onMouseOver={(e) => e.target.style.color = 'var(--text-primary)'} onMouseOut={(e) => e.target.style.color = 'var(--text-secondary)'}>
+          homepage
+        </Link>
         <div style={{ background: 'var(--bg-tertiary)', borderRadius: '999px', border: '1px solid var(--border)', padding: '2px', display: 'flex' }}>
           <span style={{ padding: '4px 12px', background: 'var(--accent-blue)', color: '#fff', borderRadius: '999px', fontSize: '12px', fontWeight: '600' }}>EN</span>
           <span style={{ padding: '4px 12px', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>HI</span>
