@@ -22,12 +22,15 @@ ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123secure')
 from services.doubtsolver import worker as doubtsolver_worker
 from services.summarynotes import worker as summarynotes_worker
 from services.examplanner import worker as examplanner_worker
+from services.quiz_routes import quiz_bp
 
 WORKERS = {
     'doubt_solver': doubtsolver_worker,
     'short_notes': summarynotes_worker,
     'exam_planner': examplanner_worker
 }
+
+app.register_blueprint(quiz_bp)
 
 # ─────────────────────────────────────────
 # API ROUTES

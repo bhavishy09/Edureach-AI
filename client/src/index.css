@@ -78,3 +78,36 @@ h3 { font-size: 18px; font-weight: 600; color: var(--text-primary); }
   align-items: center;
   justify-content: center;
 }
+
+/* ── Custom Input ── */
+.custom-input {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 16px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  outline: none;
+  width: 100%;
+}
+
+.custom-input:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(253, 224, 71, 0.12);
+}
+
+.custom-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Fix date input on dark theme */
+input[type="date"].custom-input::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
+select.custom-input option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}

@@ -70,10 +70,10 @@ export default function Sidebar({ portal }) {
         {config.links.map(link => {
           const Icon = link.icon;
           const isActive = location.pathname === link.path;
-          
+
           return (
-            <NavLink 
-              key={link.path} 
+            <NavLink
+              key={link.path}
               to={link.path}
               style={{
                 display: 'flex',
@@ -96,10 +96,10 @@ export default function Sidebar({ portal }) {
           );
         })}
       </nav>
-      
+
       <div style={{ padding: '16px', borderTop: '1px solid var(--border)' }}>
         <div style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center' }}>
-          EduReach AI v1.0
+          EduReach AI
         </div>
       </div>
     </aside>

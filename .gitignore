@@ -2,3 +2,9 @@
 .venv
 .env.example
 .env.local
+serviceAccountKey.json
+**/serviceAccountKey*.json
+services/serviceAccountKey.json
+__pycache__/
+**/__pycache__/
+*.pyc

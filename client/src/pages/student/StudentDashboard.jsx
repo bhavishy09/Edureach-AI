@@ -1,13 +1,32 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { HelpCircle, FileText, Calendar, ClipboardList } from 'lucide-react';
+import { HelpCircle, FileText, Calendar, ClipboardList, Trophy } from 'lucide-react';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 
+const ACCENT = '#f5c518';
+const STUDENT_ID = 'student_demo_001';
+
 export default function StudentDashboard() {
   const navigate = useNavigate();
-  
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+  const [recentResults, setRecentResults] = useState([]);
+
+  useEffect(() => {
+    const fetchResults = async () => {
+      try {
+        const res = await fetch(`/api/quiz/result/${STUDENT_ID}`);
+        const data = await res.json();
+        if (res.ok && data.results) {
+          setRecentResults(data.results.slice(0, 3));
+        }
+      } catch (e) {
+        // silently fail — dashboard should still render
+      }
+    };
+    fetchResults();
+  }, []);
 
   return (
     <div>
@@ -38,59 +57,102 @@ export default function StudentDashboard() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
-        
-        {/* Module Area */}
-        <div>
-          <h2 style={{ marginBottom: '16px', fontSize: '20px' }}>Your Study Modules</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-            
-            <Card hover style={{ display: 'flex', flexDirection: 'column' }}>
-              <div style={{ background: '#FEE2E2', width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
-                <HelpCircle size={20} color="var(--accent-red)" />
-              </div>
-              <h3 style={{ marginBottom: '8px' }}>Doubt Solver</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '24px', flex: 1 }}>Instant step-by-step AI solutions for your math and science doubts.</p>
-              <Button onClick={() => navigate('/student/doubts')} style={{ width: '100%' }}>Open →</Button>
-            </Card>
 
-            <Card hover style={{ display: 'flex', flexDirection: 'column' }}>
-              <div style={{ background: '#FCE7F3', width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
-                <FileText size={20} color="#DB2777" />
-              </div>
-              <h3 style={{ marginBottom: '8px' }}>Notes & Chatbot</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '24px', flex: 1 }}>Upload notes to generate flashcards and a revision chatbot.</p>
-              <Button onClick={() => navigate('/student/notes')} style={{ width: '100%' }}>Open →</Button>
-            </Card>
+        {/* Left column: Modules + Quiz Results */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
-            <Card hover style={{ display: 'flex', flexDirection: 'column' }}>
-              <div style={{ background: 'var(--accent-blue-light)', width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
-                <Calendar size={20} color="var(--accent-blue)" />
-              </div>
-              <h3 style={{ marginBottom: '8px' }}>Exam Planner</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '24px', flex: 1 }}>Generate a personalized, day-by-day exam prep roadmap.</p>
-              <Button onClick={() => navigate('/student/planner')} style={{ width: '100%' }}>Open →</Button>
-            </Card>
+          {/* Study Modules */}
+          <div>
+            <h2 style={{ marginBottom: '16px', fontSize: '20px' }}>Your Study Modules</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <Card hover style={{ display: 'flex', flexDirection: 'column' }}>
+                <div style={{ background: '#FEE2E2', width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                  <HelpCircle size={20} color="var(--accent-red)" />
+                </div>
+                <h3 style={{ marginBottom: '8px' }}>Doubt Solver</h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '24px', flex: 1 }}>Instant step-by-step AI solutions for your math and science doubts.</p>
+                <Button onClick={() => navigate('/student/doubts')} style={{ width: '100%' }}>Open →</Button>
+              </Card>
 
-            <Card hover style={{ display: 'flex', flexDirection: 'column' }}>
-              <div style={{ background: '#FFEDD5', width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
-                <ClipboardList size={20} color="var(--accent-orange)" />
-              </div>
-              <h3 style={{ marginBottom: '8px' }}>Assignments</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '24px', flex: 1 }}>Mock live quizzes and submit homework directly.</p>
-              <Button onClick={() => navigate('/student/assignments')} style={{ width: '100%' }}>Open →</Button>
-            </Card>
+              <Card hover style={{ display: 'flex', flexDirection: 'column' }}>
+                <div style={{ background: '#FCE7F3', width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                  <FileText size={20} color="#DB2777" />
+                </div>
+                <h3 style={{ marginBottom: '8px' }}>Notes & Chatbot</h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '24px', flex: 1 }}>Upload notes to generate flashcards and a revision chatbot.</p>
+                <Button onClick={() => navigate('/student/notes')} style={{ width: '100%' }}>Open →</Button>
+              </Card>
 
+              <Card hover style={{ display: 'flex', flexDirection: 'column' }}>
+                <div style={{ background: 'var(--accent-blue-light)', width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                  <Calendar size={20} color="var(--accent-blue)" />
+                </div>
+                <h3 style={{ marginBottom: '8px' }}>Exam Planner</h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '24px', flex: 1 }}>Generate a personalized, day-by-day exam prep roadmap.</p>
+                <Button onClick={() => navigate('/student/planner')} style={{ width: '100%' }}>Open →</Button>
+              </Card>
+
+              <Card hover style={{ display: 'flex', flexDirection: 'column' }}>
+                <div style={{ background: '#FFEDD5', width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                  <ClipboardList size={20} color="var(--accent-orange)" />
+                </div>
+                <h3 style={{ marginBottom: '8px' }}>Assignments</h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '24px', flex: 1 }}>Mock live quizzes and submit homework directly.</p>
+                <Button onClick={() => navigate('/student/assignments')} style={{ width: '100%' }}>Open →</Button>
+              </Card>
+            </div>
+          </div>
+
+          {/* Recent Quiz Results */}
+          <div>
+            <h2 style={{ marginBottom: '16px', fontSize: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Trophy size={20} color={ACCENT} /> Recent Quiz Results
+            </h2>
+            <Card>
+              {recentResults.length === 0 ? (
+                <p style={{ color: 'var(--text-muted)', fontSize: '14px', textAlign: 'center', padding: '16px 0' }}>
+                  No quiz results yet. Attempt a quiz from Assignments!
+                </p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {recentResults.map((r, i) => {
+                    const color = r.score >= 70 ? '#10b981' : r.score >= 40 ? ACCENT : '#ef4444';
+                    return (
+                      <div key={i} style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '12px 16px',
+                        background: 'var(--bg-tertiary)',
+                        borderRadius: '10px',
+                      }}>
+                        <div>
+                          <p style={{ fontWeight: '600', fontSize: '14px', color: 'var(--text-primary)', margin: 0 }}>{r.quiz_title || 'Quiz'}</p>
+                          <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
+                            {r.submitted_at ? new Date(r.submitted_at).toLocaleDateString('en-IN') : ''}
+                          </p>
+                        </div>
+                        <span style={{ fontSize: '18px', fontWeight: '800', color }}>{r.score}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              <Button variant="secondary" style={{ width: '100%', marginTop: '16px' }} onClick={() => navigate('/student/assignments')}>
+                View All Assignments
+              </Button>
+            </Card>
           </div>
         </div>
 
-        {/* Recent Activity */}
+        {/* Right column: Recent Activity */}
         <div>
           <h2 style={{ marginBottom: '16px', fontSize: '20px' }}>Recent Activity</h2>
           <Card>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               {['Solved Trigonometry Doubt', 'Uploaded Biology Ch 4', 'Finished MCQ Quiz', 'Checked Planner Tracker', 'Read Science Revision'].map((act, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-blue)', marginTop: '6px' }}></div>
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-blue)', marginTop: '6px' }} />
                   <div>
                     <p style={{ fontWeight: '500', fontSize: '14px', color: 'var(--text-primary)', marginBottom: '4px' }}>{act}</p>
                     <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{i * 2 + 1} hours ago</p>

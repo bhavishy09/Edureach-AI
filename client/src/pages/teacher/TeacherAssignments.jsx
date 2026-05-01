@@ -5,11 +5,25 @@ import Button from '../../components/Button';
 import Input from '../../components/Input';
 
 export default function TeacherAssignments() {
-  const assignments = [
-    { id: 1, title: 'Cell Biology Quiz', class: 'Class 10 A', status: 'Active', submissions: '32/40', dueDate: 'Today, 5:00 PM' },
-    { id: 2, title: 'Physics Numericals', class: 'Class 10 B', status: 'Active', submissions: '15/38', dueDate: 'Tomorrow' },
-    { id: 3, title: 'Chemistry Lab Report', class: 'Class 11 Science', status: 'Closed', submissions: '45/45', dueDate: 'Last Week' },
-  ];
+  const [assignments, setAssignments] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState('');
+
+  React.useEffect(() => {
+    const fetchAssignments = async () => {
+      try {
+        const res = await fetch('/api/quiz/all');
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to load assignments');
+        setAssignments(data.quizzes || []);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAssignments();
+  }, []);
 
   return (
     <div>
@@ -55,36 +69,57 @@ export default function TeacherAssignments() {
               </tr>
             </thead>
             <tbody>
-              {assignments.map((assignment) => (
-                <tr key={assignment.id} style={{ borderBottom: '1px solid var(--border)', transition: 'background 150ms ease' }} className="table-row-hover">
-                  <td style={{ padding: '16px', fontWeight: '600', color: 'var(--text-primary)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ background: 'var(--bg-tertiary)', padding: '8px', borderRadius: '8px' }}>
-                        <ClipboardCheck size={18} color="var(--accent-purple)" />
-                      </div>
-                      {assignment.title}
-                    </div>
-                  </td>
-                  <td style={{ padding: '16px', color: 'var(--text-secondary)' }}>{assignment.class}</td>
-                  <td style={{ padding: '16px' }}>
-                    <span style={{ 
-                      padding: '4px 12px', 
-                      borderRadius: '999px', 
-                      fontSize: '12px', 
-                      fontWeight: 'bold',
-                      background: assignment.status === 'Active' ? 'rgba(16, 185, 129, 0.15)' : 'var(--bg-tertiary)',
-                      color: assignment.status === 'Active' ? 'var(--accent-green)' : 'var(--text-muted)'
-                    }}>
-                      {assignment.status}
-                    </span>
-                  </td>
-                  <td style={{ padding: '16px', color: 'var(--text-primary)', fontWeight: '500' }}>{assignment.submissions}</td>
-                  <td style={{ padding: '16px', color: 'var(--text-secondary)' }}>{assignment.dueDate}</td>
-                  <td style={{ padding: '16px', textAlign: 'right' }}>
-                    <Button variant="secondary" style={{ height: '32px', padding: '0 16px', fontSize: '13px' }}>View Details</Button>
+              {loading ? (
+                <tr>
+                  <td colSpan="6" style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                    Loading assignments...
                   </td>
                 </tr>
-              ))}
+              ) : error ? (
+                <tr>
+                  <td colSpan="6" style={{ padding: '24px', textAlign: 'center', color: 'var(--accent-red)' }}>
+                    Error loading assignments: {error}
+                  </td>
+                </tr>
+              ) : assignments.length === 0 ? (
+                <tr>
+                  <td colSpan="6" style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                    No assignments found. Create one above.
+                  </td>
+                </tr>
+              ) : (
+                assignments.map((assignment) => (
+                  <tr key={assignment.quiz_id} style={{ borderBottom: '1px solid var(--border)', transition: 'background 150ms ease' }} className="table-row-hover">
+                    <td style={{ padding: '16px', fontWeight: '600', color: 'var(--text-primary)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ background: 'var(--bg-tertiary)', padding: '8px', borderRadius: '8px' }}>
+                          <ClipboardCheck size={18} color="var(--accent-purple)" />
+                        </div>
+                        {assignment.title}
+                      </div>
+                    </td>
+                    <td style={{ padding: '16px', color: 'var(--text-secondary)' }}>{assignment.grade}</td>
+                    <td style={{ padding: '16px' }}>
+                      <span style={{ 
+                        padding: '4px 12px', 
+                        borderRadius: '999px', 
+                        fontSize: '12px', 
+                        fontWeight: 'bold',
+                        background: assignment.status === 'active' ? 'rgba(16, 185, 129, 0.15)' : 'var(--bg-tertiary)',
+                        color: assignment.status === 'active' ? 'var(--accent-green)' : 'var(--text-muted)',
+                        textTransform: 'capitalize'
+                      }}>
+                        {assignment.status}
+                      </span>
+                    </td>
+                    <td style={{ padding: '16px', color: 'var(--text-primary)', fontWeight: '500' }}>-</td>
+                    <td style={{ padding: '16px', color: 'var(--text-secondary)' }}>{assignment.due_date || 'No due date'}</td>
+                    <td style={{ padding: '16px', textAlign: 'right' }}>
+                      <Button variant="secondary" style={{ height: '32px', padding: '0 16px', fontSize: '13px' }}>View Details</Button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
           <style>{`
