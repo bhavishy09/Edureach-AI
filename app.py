@@ -23,6 +23,7 @@ from services.doubtsolver import worker as doubtsolver_worker
 from services.summarynotes import worker as summarynotes_worker
 from services.examplanner import worker as examplanner_worker
 from services.quiz_routes import quiz_bp
+from services.pyq_routes import pyq_bp
 
 WORKERS = {
     'doubt_solver': doubtsolver_worker,
@@ -31,6 +32,7 @@ WORKERS = {
 }
 
 app.register_blueprint(quiz_bp)
+app.register_blueprint(pyq_bp)
 
 # ─────────────────────────────────────────
 # API ROUTES

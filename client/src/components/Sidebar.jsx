@@ -16,6 +16,7 @@ export default function Sidebar({ portal }) {
         { label: 'My Notes', path: '/student/notes', icon: FileText },
         { label: 'Exam Planner', path: '/student/planner', icon: Calendar },
         { label: 'Assignments', path: '/student/assignments', icon: ClipboardList },
+        { label: 'PYQ Analysis', path: '/student/pyq-analysis', icon: BarChart3 },
         { label: 'Settings', path: '/student/settings', icon: Settings },
       ]
     },
