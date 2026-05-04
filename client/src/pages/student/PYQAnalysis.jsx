@@ -99,8 +99,8 @@ export default function PYQAnalysis() {
               }}
             >
               {filteredSubjects.map((s, idx) => (
-                <option key={idx} value={s.subject}>
-                  {s.subject} {s.available ? '' : '(Coming Soon)'}
+                <option key={idx} value={s.subject} disabled={!s.available}>
+                  {s.subject} {s.available ? '' : '🔒'}
                 </option>
               ))}
             </select>

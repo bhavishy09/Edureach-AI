@@ -8,9 +8,9 @@ class ModelClassifier:
         # Note: using the actual file name with space based on our inspection
         self.registry = {
             "10_science": os.path.join(base_dir, "models", "science (1).pkl"),
-            "12_physics": os.path.join(base_dir, "models", "physics12.pkl"),
-            "12_chemistry": os.path.join(base_dir, "models", "chemistry12.pkl"),
-            "12_biology": os.path.join(base_dir, "models", "biology12.pkl"),
+            "10_math": os.path.join(base_dir, "models", "Math_10.pkl"),
+            "12_physics": os.path.join(base_dir, "models", "Physics_12.pkl"),
+            "12_chemistry": os.path.join(base_dir, "models", "Chemistry_12.pkl"),
         }
 
     def get_results(self, class_level: str, subject: str):

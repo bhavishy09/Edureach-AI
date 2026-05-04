@@ -21,8 +21,8 @@ def pyq_results():
 def pyq_available_subjects():
     subjects = [
         {"class_level": "10", "subject": "Science", "available": True},
-        {"class_level": "12", "subject": "Physics", "available": False},
-        {"class_level": "12", "subject": "Chemistry", "available": False},
-        {"class_level": "12", "subject": "Biology", "available": False}
+        {"class_level": "10", "subject": "Math", "available": True},
+        {"class_level": "12", "subject": "Physics", "available": True},
+        {"class_level": "12", "subject": "Chemistry", "available": True}
     ]
     return jsonify(subjects), 200

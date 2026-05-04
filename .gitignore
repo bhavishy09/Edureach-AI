@@ -6,3 +6,4 @@
 # Ignore large machine learning models
 models/
 *.pkl
+services/serviceAccountKey.json
