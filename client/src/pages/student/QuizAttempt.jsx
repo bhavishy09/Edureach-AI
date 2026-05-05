@@ -3,12 +3,10 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { ChevronRight, AlertCircle } from 'lucide-react';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
+import { auth } from '../../lib/firebase';
+import { trackActivity } from '../../utils/trackActivity';
 
 const ACCENT = '#f5c518';
-
-// Hardcoded for demo; in production, get from auth context
-const STUDENT_ID = 'student_demo_001';
-const STUDENT_NAME = 'Ravi Kumar';
 
 export default function QuizAttempt() {
   const location = useLocation();
@@ -47,19 +45,31 @@ export default function QuizAttempt() {
     }
     setError('');
     setSubmitting(true);
+    
+    const user = auth.currentUser;
+    if (!user) {
+      setError('You must be logged in to submit a quiz.');
+      setSubmitting(false);
+      return;
+    }
+
     try {
       const res = await fetch('/api/quiz/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           quiz_id: quiz.quiz_id,
-          student_id: STUDENT_ID,
-          student_name: STUDENT_NAME,
+          student_id: user.uid,
+          student_name: user.displayName || 'Student',
           answers,
         }),
       });
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data.error || 'Submission failed');
+      
+      // Track activity
+      await trackActivity(user.uid, `Completed Quiz: ${quiz.title}`, 'quiz');
+      
       // Navigate to result page with the data
       navigate('/student/quiz/result', { state: { result: data, quizTitle: quiz.title } });
     } catch (err) {

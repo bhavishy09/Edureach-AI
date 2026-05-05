@@ -32,13 +32,17 @@ export async function createUser(userId, userData) {
   await setDoc(userRef, {
     user_id: userId,
     name: userData.name || '',
-    role: userData.role, // "student" | "teacher" | "admin"
+    role: userData.role || 'student',
     email: userData.email || '',
     phone: userData.phone || '',
     school_code: userData.school_code || '',
     teacher_id: userData.teacher_id || '',
     class: userData.class || '',
     board: userData.board || '',
+    doubts_solved: userData.doubts_solved ?? 0,
+    notes_uploaded: userData.notes_uploaded ?? 0,
+    planner_progress: userData.planner_progress ?? 0,
+    pending_assignments: userData.pending_assignments ?? 0,
     created_at: serverTimestamp(),
     last_login: serverTimestamp(),
   });

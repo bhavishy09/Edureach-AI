@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-app = Flask(__name__, static_folder='static')
+app = Flask(__name__, static_folder='static', template_folder='static')
 CORS(app)
 
 # Basic configuration
@@ -125,5 +125,5 @@ def catch_all(path):
     return render_template('index.html')
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5003)
+    app.run(debug=True, port=5005)
   

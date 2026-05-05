@@ -3,22 +3,34 @@ import { useNavigate } from 'react-router-dom';
 import { ClipboardCheck, Calendar, BookOpen, AlertCircle } from 'lucide-react';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../../lib/firebase';
 
 const ACCENT = '#f5c518';
 
 export default function StudentAssignments() {
   const navigate = useNavigate();
-  // In a real app, get grade from auth context. Using Class 10 as default.
-  const studentGrade = 'Class 10';
-
+  const [studentGrade, setStudentGrade] = useState('');
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchQuizzes = async () => {
+    const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        navigate('/register/student');
+        return;
+      }
+
       try {
-        const gradeParam = studentGrade.replace(' ', '-');
+        // Get user's class from Firestore
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        const classLevel = userDoc.exists() ? userDoc.data().class : '10';
+        const grade = `Class ${classLevel}`;
+        setStudentGrade(grade);
+
+        // Fetch quizzes for the student's class
+        const gradeParam = grade.replace(' ', '-');
         const res = await fetch(`/api/quiz/assignments/${gradeParam}`);
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Failed to load assignments');
@@ -28,9 +40,10 @@ export default function StudentAssignments() {
       } finally {
         setLoading(false);
       }
-    };
-    fetchQuizzes();
-  }, []);
+    });
+
+    return () => unsubscribeAuth();
+  }, [navigate]);
 
   const formatDue = (dateStr) => {
     if (!dateStr) return 'No due date';

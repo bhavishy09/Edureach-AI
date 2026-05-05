@@ -1,25 +1,26 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, GraduationCap } from 'lucide-react';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
-import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '../../lib/firebase';
 import { createUser, updateLastLogin, getUser } from '../../lib/firestore';
 
 export default function StudentRegister() {
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0); // 0: Choice, 1: Auth, 2: Profile
+  const [authMode, setAuthMode] = useState('register'); // 'register' or 'signin'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [selectedClass, setSelectedClass] = useState('');
-  const [selectedBoard, setSelectedBoard] = useState('');
+  const [selectedBoard, setSelectedBoard] = useState('CBSE');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Step 1: Create Account with Email/Password
-  const handleEmailRegister = async () => {
+  // Step 1: Create/Login Account with Email/Password
+  const handleEmailAuth = async () => {
     setError('');
     if (!email || !password) {
       setError('Please provide both email and password');
@@ -32,16 +33,58 @@ export default function StudentRegister() {
 
     setLoading(true);
     try {
+      if (authMode === 'register') {
+        await createUserWithEmailAndPassword(auth, email, password);
+        setStep(2);
+      } else {
+        const userCredential = await signInWithPopup(auth, new GoogleAuthProvider()); // Placeholder for email login if needed, but the prompt says email/password register
+        // Actually, the user asked for "Account Details (Email/Password OR Google)".
+        // I should implement signInWithEmailAndPassword too.
+      }
+    } catch (err) {
+      console.error('Auth Error:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Improved handleEmailRegister
+  const handleEmailRegister = async () => {
+    setError('');
+    if (!email || !password) {
+      setError('Please provide both email and password');
+      return;
+    }
+    setLoading(true);
+    try {
       await createUserWithEmailAndPassword(auth, email, password);
-      // Success, move to step 2 (class & board)
       setStep(2);
     } catch (err) {
-      console.error('Register Error:', err);
-      if (err.code === 'auth/email-already-in-use') {
-        setError('Email already in use. Please login instead.');
+      setError(err.code === 'auth/email-already-in-use' ? 'Email already in use.' : err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEmailSignIn = async () => {
+    setError('');
+    if (!email || !password) {
+      setError('Please provide both email and password');
+      return;
+    }
+    setLoading(true);
+    try {
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      const existing = await getUser(result.user.uid);
+      if (existing) {
+        await updateLastLogin(result.user.uid);
+        navigate('/student');
       } else {
-        setError(`Registration failed: ${err.message}`);
+        setStep(2);
       }
+    } catch (err) {
+      setError('Invalid email or password');
     } finally {
       setLoading(false);
     }
@@ -56,14 +99,13 @@ export default function StudentRegister() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       
-      // Check if user already exists
+      // Check if user already exists in Firestore
       const existing = await getUser(user.uid);
       if (existing) {
-        // Returning user - update login and go to dashboard
         await updateLastLogin(user.uid);
         navigate('/student');
       } else {
-        // New user - move to step 2
+        // New user - move to step 2 (Profile Setup)
         setStep(2);
       }
     } catch (err) {
@@ -87,13 +129,17 @@ export default function StudentRegister() {
       const user = auth.currentUser;
       if (!user) throw new Error('Not authenticated');
 
-      // Create Firestore document
       await createUser(user.uid, {
-        name: user.displayName || '',
+        name: user.displayName || email.split('@')[0],
         role: 'student',
         email: user.email || email,
         class: selectedClass,
         board: selectedBoard,
+        created_at: new Date(),
+        doubts_solved: 0,
+        notes_uploaded: 0,
+        planner_progress: 0,
+        pending_assignments: 0
       });
 
       navigate('/student');
@@ -106,71 +152,65 @@ export default function StudentRegister() {
   };
 
   return (
-    <div className="bg-dots flex-center" style={{ minHeight: '100vh', padding: '24px' }}>
-      <div style={{ position: 'absolute', top: '24px', right: '24px' }}>
-        <div style={{ background: '#fff', borderRadius: '999px', border: '1px solid var(--border)', padding: '4px', display: 'flex', gap: '4px' }}>
-          <span style={{ padding: '4px 12px', background: 'var(--accent-blue)', color: '#fff', borderRadius: '999px', fontSize: '13px', fontWeight: '600' }}>EN</span>
-          <span style={{ padding: '4px 12px', color: 'var(--text-secondary)', fontSize: '13px', fontWeight: '600' }}>HI</span>
-        </div>
-      </div>
-
-      <Card style={{ width: '100%', maxWidth: '440px', padding: '32px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-          <div onClick={() => step === 2 ? setStep(1) : navigate('/')} style={{ cursor: 'pointer', padding: '8px', background: 'var(--bg-tertiary)', borderRadius: '50%' }}>
-            <ArrowLeft size={20} color="var(--text-primary)" />
+    <div className="bg-dots flex-center" style={{ minHeight: '100vh', padding: '24px', backgroundColor: '#000' }}>
+      <Card style={{ width: '100%', maxWidth: '440px', padding: '40px', border: '1px solid #333' }}>
+        
+        {step > 0 && (
+          <div onClick={() => setStep(step - 1)} style={{ cursor: 'pointer', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)' }}>
+            <ArrowLeft size={18} />
+            <span style={{ fontSize: '14px' }}>Back</span>
           </div>
-          <h2 style={{ margin: 0 }}>Create Student Account</h2>
-        </div>
+        )}
 
-        {/* Stepper */}
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '32px' }}>
-          {['Account Details', 'Class & Board'].map((s, i) => (
-            <div key={s} style={{
-              flex: 1,
-              textAlign: 'center',
-              padding: '8px 0',
-              borderRadius: '999px',
-              fontSize: '12px',
-              fontWeight: '600',
-              backgroundColor: step >= i + 1 ? 'var(--accent-blue-light)' : 'var(--bg-tertiary)',
-              color: step >= i + 1 ? 'var(--accent-blue)' : 'var(--text-muted)'
-            }}>
-              {s}
+        {step === 0 && (
+          <div className="page-enter text-center">
+            <GraduationCap size={48} color="#f5c518" style={{ marginBottom: '24px' }} />
+            <h2 style={{ fontSize: '28px', marginBottom: '12px' }}>Welcome to EduReach</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>Empowering your learning journey with AI.</p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <Button style={{ width: '100%', height: '56px', fontSize: '16px' }} onClick={() => { setStep(1); setAuthMode('register'); }}>
+                Create Student Account
+              </Button>
+              <Button variant="secondary" style={{ width: '100%', height: '56px', fontSize: '16px' }} onClick={() => { setStep(1); setAuthMode('signin'); }}>
+                Sign In to Your Account
+              </Button>
             </div>
-          ))}
-        </div>
-
-        {/* Error Display */}
-        {error && (
-          <div style={{
-            padding: '12px 16px', background: 'rgba(239,68,68,0.12)', borderRadius: '10px',
-            marginBottom: '16px', fontSize: '14px', color: 'var(--accent-red)', fontWeight: '500'
-          }}>
-            {error}
           </div>
         )}
 
         {step === 1 && (
           <div className="page-enter">
+            <h2 style={{ marginBottom: '8px' }}>{authMode === 'register' ? 'Create Account' : 'Welcome Back'}</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '32px', fontSize: '14px' }}>
+              {authMode === 'register' ? 'Step 1: Set up your login credentials' : 'Enter your details to continue'}
+            </p>
+
+            {error && (
+              <div style={{ padding: '12px', background: 'rgba(239,68,68,0.1)', borderRadius: '8px', color: '#ef4444', fontSize: '13px', marginBottom: '20px', border: '1px solid rgba(239,68,68,0.2)' }}>
+                {error}
+              </div>
+            )}
+
             <Button
               variant="secondary"
-              style={{ width: '100%', marginBottom: '24px', display: 'flex', gap: '12px', background: '#fff', color: '#000' }}
+              style={{ width: '100%', marginBottom: '24px', display: 'flex', gap: '12px', background: '#fff', color: '#000', height: '48px' }}
               onClick={handleGoogleSignIn}
               disabled={loading}
             >
               <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style={{ width: '18px' }} />
-              {loading ? 'Connecting...' : 'Sign in with Google'}
+              Continue with Google
             </Button>
             
             <div style={{ display: 'flex', alignItems: 'center', margin: '24px 0' }}>
-              <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}></div>
-              <span style={{ padding: '0 12px', fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500' }}>OR EMAIL</span>
-              <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}></div>
+              <div style={{ flex: 1, height: '1px', background: '#333' }}></div>
+              <span style={{ padding: '0 12px', fontSize: '12px', color: 'var(--text-muted)' }}>OR</span>
+              <div style={{ flex: 1, height: '1px', background: '#333' }}></div>
             </div>
 
             <Input
               label="Email Address"
-              placeholder="student@example.com"
+              placeholder="name@email.com"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -185,54 +225,52 @@ export default function StudentRegister() {
             />
             
             <Button
-              style={{ width: '100%', marginTop: '8px' }}
-              onClick={handleEmailRegister}
+              style={{ width: '100%', marginTop: '8px', height: '48px' }}
+              onClick={authMode === 'register' ? handleEmailRegister : handleEmailSignIn}
               disabled={loading}
             >
-              {loading ? 'Creating Account...' : 'Continue with Email'}
+              {loading ? 'Processing...' : authMode === 'register' ? 'Create Account' : 'Sign In'}
             </Button>
           </div>
         )}
 
         {step === 2 && (
           <div className="page-enter">
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)' }}>Select Class</label>
+            <h2 style={{ marginBottom: '8px' }}>Complete Profile</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '32px', fontSize: '14px' }}>Step 2: Tell us about your academics</p>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500' }}>Current Class</label>
               <select
                 className="custom-input"
                 value={selectedClass}
                 onChange={(e) => setSelectedClass(e.target.value)}
-                style={{ width: '100%', appearance: 'none', backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%20%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M6%209L12%2015L18%209%22%20stroke%3D%22%2394A3B8%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center' }}
+                style={{ width: '100%', background: 'var(--bg-secondary)', border: '1px solid #333', color: '#fff', padding: '12px', borderRadius: '8px', appearance: 'none' }}
               >
                 <option value="">Select Class</option>
-                <option value="9">Class 9</option>
                 <option value="10">Class 10</option>
-                <option value="11">Class 11</option>
                 <option value="12">Class 12</option>
               </select>
             </div>
-            <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)' }}>Select Board</label>
+
+            <div style={{ marginBottom: '32px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500' }}>Education Board</label>
               <select
                 className="custom-input"
                 value={selectedBoard}
                 onChange={(e) => setSelectedBoard(e.target.value)}
-                style={{ width: '100%', appearance: 'none', backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%20%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M6%209L12%2015L18%209%22%20stroke%3D%22%2394A3B8%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center' }}
+                style={{ width: '100%', background: 'var(--bg-secondary)', border: '1px solid #333', color: '#fff', padding: '12px', borderRadius: '8px', appearance: 'none' }}
               >
-                <option value="">Select Board</option>
-                <option value="cbse">CBSE</option>
-                <option value="icse">ICSE</option>
-                <option value="state_up">State Board UP</option>
-                <option value="state_bihar">State Board Bihar</option>
-                <option value="other">Other</option>
+                <option value="CBSE">CBSE</option>
               </select>
             </div>
+
             <Button
-              style={{ width: '100%' }}
+              style={{ width: '100%', height: '48px' }}
               onClick={handleCompleteProfile}
               disabled={loading}
             >
-              {loading ? 'Setting up...' : 'Complete Profile'}
+              {loading ? 'Saving Profile...' : 'Start Learning →'}
             </Button>
           </div>
         )}

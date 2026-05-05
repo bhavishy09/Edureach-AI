@@ -3,7 +3,7 @@ import { Send, Loader2, Bot, User, ImagePlus, X } from 'lucide-react';
 import Card from './Card';
 import Button from './Button';
 
-export default function ChatEngine({ pageContext, title, description, icon: Icon, color }) {
+export default function ChatEngine({ pageContext, title, description, icon: Icon, color, onBotResponse }) {
   const [query, setQuery] = useState('');
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -63,9 +63,9 @@ export default function ChatEngine({ pageContext, title, description, icon: Icon
     if (!query.trim() && selectedImages.length === 0) return;
 
     const userMsg = { 
-      role: 'user', 
-      content: query,
-      images: selectedImages.map(img => img.base64)
+       role: 'user', 
+       content: query,
+       images: selectedImages.map(img => img.base64)
     };
     
     setMessages((prev) => [...prev, userMsg]);
@@ -91,11 +91,17 @@ export default function ChatEngine({ pageContext, title, description, icon: Icon
         throw new Error(data.detail || 'Server returned an error');
       }
       
-      setMessages((prev) => [...prev, {
+      const botMsg = {
         role: 'bot',
         content: data.response || 'No response received.',
         sources: data.sources || []
-      }]);
+      };
+      setMessages((prev) => [...prev, botMsg]);
+      
+      // Trigger callback for activity tracking
+      if (onBotResponse) {
+        onBotResponse(userMsg, botMsg);
+      }
     } catch (err) {
       console.error(err);
       setMessages((prev) => [...prev, {

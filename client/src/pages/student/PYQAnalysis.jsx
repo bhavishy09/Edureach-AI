@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Lock, BarChart, BookOpen, AlertCircle, Info, RefreshCw, Layers } from 'lucide-react';
+import { auth } from '../../lib/firebase';
+import { trackActivity } from '../../utils/trackActivity';
 
 export default function PYQAnalysis() {
   const [availableSubjects, setAvailableSubjects] = useState([]);
@@ -27,6 +29,12 @@ export default function PYQAnalysis() {
       .then(data => {
         setResults(data);
         setLoading(false);
+        
+        // Track Activity
+        const uid = auth.currentUser?.uid;
+        if (uid && data.available) {
+          trackActivity(uid, `Viewed PYQ Analysis: ${subject} (Class ${classLevel})`, 'notes');
+        }
       })
       .catch(err => {
         console.error("Error fetching results:", err);
