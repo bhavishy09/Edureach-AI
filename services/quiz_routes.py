@@ -12,11 +12,27 @@ import firebase_admin
 from firebase_admin import credentials, firestore as admin_firestore
 import os
 
+import json
+
 # Only initialize if not already initialized
 if not firebase_admin._apps:
-    cred = credentials.Certificate(
-        os.path.join(os.path.dirname(__file__), 'serviceAccountKey.json')
-    )
+    firebase_json = os.environ.get('FIREBASE_SERVICE_ACCOUNT')
+    if firebase_json:
+        # For Render deployment
+        try:
+            cred_dict = json.loads(firebase_json)
+            cred = credentials.Certificate(cred_dict)
+        except Exception as e:
+            print(f"Error parsing FIREBASE_SERVICE_ACCOUNT: {e}")
+            # Fallback to file just in case
+            cred = credentials.Certificate(
+                os.path.join(os.path.dirname(__file__), 'serviceAccountKey.json')
+            )
+    else:
+        # Local development
+        cred = credentials.Certificate(
+            os.path.join(os.path.dirname(__file__), 'serviceAccountKey.json')
+        )
     firebase_admin.initialize_app(cred)
 
 db = admin_firestore.client()
