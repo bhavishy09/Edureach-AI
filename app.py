@@ -1,6 +1,4 @@
 
-
-
 import os
 from flask import Flask, render_template, send_from_directory, request, jsonify
 from flask_cors import CORS
@@ -64,7 +62,7 @@ def chat_endpoint():
             return jsonify({'detail': f'Unknown page context: {page_context}'}), 400
         
         # Pass image data only to workers that support it
-        if page_context in ['doubt_solver', 'short_notes']:
+        if page_context in ['doubt_solver', 'short_notes', 'exam_planner']:
             response_text, sources = worker.process_query(
                 query, 
                 page_context, 

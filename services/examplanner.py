@@ -1,4 +1,5 @@
 import os
+import base64
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage, SystemMessage
 from dotenv import load_dotenv
@@ -18,10 +19,34 @@ class ExamPlannerWorker:
         else:
             self.llm = None
 
-    def process_query(self, query: str, page_context: str = ""):
+    def process_query(self, query: str, page_context: str = "", image_data: bytes = None, image_mime_type: str = "image/jpeg"):
         if not self.llm:
             return "Error: Gemini API key is not configured.", []
         try:
+            # Build the human message content
+            if image_data:
+                # Encode image to base64
+                encoded_image = base64.b64encode(image_data).decode("utf-8")
+
+                # If no text query provided alongside image, use a default prompt
+                text_part = query.strip() if query.strip() else "Please create a detailed exam preparation roadmap based on the schedule or syllabus shown in this image."
+
+                human_content = [
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:{image_mime_type};base64,{encoded_image}"
+                        }
+                    },
+                    {
+                        "type": "text",
+                        "text": text_part
+                    }
+                ]
+            else:
+                # Text only - provide a default if empty to avoid API error
+                human_content = query if query.strip() else "Hi, I need help planning my exams."
+
             messages = [
                 SystemMessage(content="""You are an expert Exam Planner for Class 10 and Class 12 students preparing for their board exams.
 
@@ -30,7 +55,8 @@ YOUR BEHAVIOR:
   1. Their exam schedule (which exam on which date — ask them to list all subjects with dates)
   2. Their syllabus or pending topics for each subject (ask them to list what is left to study)
 - Do NOT generate any plan until you have received BOTH the schedule AND the syllabus from the student.
-- If either is missing, politely ask again before proceeding.
+- If the student uploads an image, carefully analyze it to extract dates, subjects, or syllabus topics.
+- If either schedule or syllabus is missing after analyzing text/images, politely ask for the missing part before proceeding.
 
 PLAN FORMAT (use this exact structure every time):
 ---
@@ -61,7 +87,7 @@ STRICT CONSTRAINTS:
 - Always strictly follow the student's given schedule. Never suggest studying a subject on its exam date.
 - Distribute topics evenly and realistically — do not overload any single day.
 - Think through the schedule and syllabus carefully before generating the roadmap."""),
-                HumanMessage(content=query)
+                HumanMessage(content=human_content)
             ]
             response = self.llm.invoke(messages)
             return response.content, []
