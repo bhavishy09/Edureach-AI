@@ -1,9 +1,10 @@
 .env
 .venv
-.env.example
 .env.local
 
 # Ignore large machine learning models
 models/
 *.pkl
 services/serviceAccountKey.json
+__pycache__/
+*.pyc

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Loader2, Bot, User, ImagePlus, X } from 'lucide-react';
 import Card from './Card';
 import Button from './Button';
+import { apiUrl } from '../lib/api';
 
 export default function ChatEngine({ pageContext, title, description, icon: Icon, color, onBotResponse }) {
   const [query, setQuery] = useState('');
@@ -74,7 +75,7 @@ export default function ChatEngine({ pageContext, title, description, icon: Icon
     setLoading(true);
 
     try {
-      const res = await fetch('/api/chat', {
+      const res = await fetch(apiUrl('/api/chat'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

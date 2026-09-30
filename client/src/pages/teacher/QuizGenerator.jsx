@@ -3,6 +3,7 @@ import { Sparkles, Settings2, FileCheck2, Download, Send, ChevronDown, ChevronUp
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
+import { apiUrl } from '../../lib/api';
 
 const ACCENT = '#f5c518';
 const GREEN = '#10b981';
@@ -187,7 +188,7 @@ export default function QuizGenerator() {
     }
     setIsGenerating(true);
     try {
-      const res = await fetch('/api/quiz/generate', {
+      const res = await fetch(apiUrl('/api/quiz/generate'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -217,7 +218,7 @@ export default function QuizGenerator() {
     setIsPosting(true);
     setError('');
     try {
-      const res = await fetch('/api/quiz/post', {
+      const res = await fetch(apiUrl('/api/quiz/post'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -3,6 +3,7 @@ import { ClipboardCheck, Plus, Search } from 'lucide-react';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
+import { apiUrl } from '../../lib/api';
 
 export default function TeacherAssignments() {
   const [assignments, setAssignments] = React.useState([]);
@@ -12,7 +13,7 @@ export default function TeacherAssignments() {
   React.useEffect(() => {
     const fetchAssignments = async () => {
       try {
-        const res = await fetch('/api/quiz/all');
+        const res = await fetch(apiUrl('/api/quiz/all'));
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Failed to load assignments');
         setAssignments(data.quizzes || []);

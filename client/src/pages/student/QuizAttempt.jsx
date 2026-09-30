@@ -5,6 +5,7 @@ import Card from '../../components/Card';
 import Button from '../../components/Button';
 import { auth } from '../../lib/firebase';
 import { trackActivity } from '../../utils/trackActivity';
+import { apiUrl } from '../../lib/api';
 
 const ACCENT = '#f5c518';
 
@@ -54,7 +55,7 @@ export default function QuizAttempt() {
     }
 
     try {
-      const res = await fetch('/api/quiz/submit', {
+      const res = await fetch(apiUrl('/api/quiz/submit'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

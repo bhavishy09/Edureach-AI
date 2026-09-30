@@ -5,12 +5,15 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   build: {
-    outDir: '../static',
+    outDir: process.env.BUILD_OUT_DIR || 'dist',
     emptyOutDir: true,
   },
   server: {
     proxy: {
-      '/api': 'http://127.0.0.1:5005'
+      '/api': {
+        target: 'http://127.0.0.1:5005',
+        changeOrigin: true,
+      }
     }
   }
 })

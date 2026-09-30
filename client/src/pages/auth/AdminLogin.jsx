@@ -5,6 +5,7 @@ import Card from '../../components/Card';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
 import { useAuth } from '../../contexts/AuthContext';
+import { apiUrl } from '../../lib/api';
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ export default function AdminLogin() {
     setLoading(true);
     try {
       // Call Flask API to validate admin credentials
-      const response = await fetch('/api/admin/login', {
+      const response = await fetch(apiUrl('/api/admin/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

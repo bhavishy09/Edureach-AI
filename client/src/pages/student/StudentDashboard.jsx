@@ -5,6 +5,7 @@ import { doc, onSnapshot, collection, query, orderBy, limit } from 'firebase/fir
 import { auth, db } from '../../lib/firebase';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
+import { apiUrl } from '../../lib/api';
 
 const ACCENT = '#f5c518';
 
@@ -53,7 +54,7 @@ export default function StudentDashboard() {
         const fetchResultsAndPending = async () => {
           try {
             // Fetch student's quiz results
-            const res = await fetch(`/api/quiz/result/${user.uid}`);
+            const res = await fetch(apiUrl(`/api/quiz/result/${user.uid}`));
             const data = await res.json();
             let attemptedQuizIds = [];
             if (res.ok && data.results) {
@@ -65,7 +66,7 @@ export default function StudentDashboard() {
             const userDoc = await import('firebase/firestore').then(m => m.getDoc(doc(db, 'users', user.uid)));
             const classLevel = userDoc.exists() ? userDoc.data().class : '10';
             const grade = `Class-${classLevel}`;
-            const assignRes = await fetch(`/api/quiz/assignments/${grade}`);
+            const assignRes = await fetch(apiUrl(`/api/quiz/assignments/${grade}`));
             const assignData = await assignRes.json();
             if (assignRes.ok && assignData.quizzes) {
               const notAttempted = assignData.quizzes.filter(q => !attemptedQuizIds.includes(q.quiz_id));

@@ -5,6 +5,7 @@ import Card from '../../components/Card';
 import Button from '../../components/Button';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../../lib/firebase';
+import { apiUrl } from '../../lib/api';
 
 const ACCENT = '#f5c518';
 
@@ -31,7 +32,7 @@ export default function StudentAssignments() {
 
         // Fetch quizzes for the student's class
         const gradeParam = grade.replace(' ', '-');
-        const res = await fetch(`/api/quiz/assignments/${gradeParam}`);
+        const res = await fetch(apiUrl(`/api/quiz/assignments/${gradeParam}`));
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Failed to load assignments');
         setQuizzes(data.quizzes || []);

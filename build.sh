@@ -3,15 +3,21 @@
 set -o errexit
 
 # Install python dependencies
+echo "Installing Python dependencies..."
 pip install -r requirements.txt
 
-# Build the React frontend
-echo "Building React Frontend..."
-cd client
-npm install
-npm run build
-cd ..
+# Ensure static directory exists
+mkdir -p static
 
-# Ensure static directory exists (where Flask serves from)
-# Note: In your vite.config.js, the build.outDir should be ../static
+# Build the React frontend only if BUILD_FRONTEND is explicitly set to true
+if [ "$BUILD_FRONTEND" = "true" ]; then
+    echo "Building React Frontend..."
+    cd client
+    npm install
+    BUILD_OUT_DIR=../static npm run build
+    cd ..
+else
+    echo "Frontend build skipped on Render (Frontend is hosted on Vercel)."
+fi
+
 echo "Build Complete!"

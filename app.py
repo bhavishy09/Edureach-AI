@@ -8,7 +8,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__, static_folder='static', template_folder='static')
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
+
+@app.after_request
+def add_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
+    response.headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,OPTIONS'
+    return response
 
 # Basic configuration
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'default-secret-key')
@@ -111,7 +118,15 @@ def admin_login():
 def send_assets(path):
     return send_from_directory('static/assets', path)
 
-# Catch-all route to serve the React frontend for all paths
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    return jsonify({
+        'status': 'healthy',
+        'service': 'EduReach AI API',
+        'message': 'Backend is operational'
+    }), 200
+
+# Catch-all route to serve the React frontend if built, or status message
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def catch_all(path):
@@ -120,7 +135,14 @@ def catch_all(path):
         return jsonify({'error': 'Not found'}), 404
     if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
         return send_from_directory(app.static_folder, path)
-    return render_template('index.html')
+    if os.path.exists(os.path.join(app.static_folder, 'index.html')):
+        return render_template('index.html')
+    return jsonify({
+        'status': 'online',
+        'service': 'EduReach AI API Backend',
+        'health': '/api/health',
+        'message': 'EduReach AI Flask API is running on Render.'
+    }), 200
 
 if __name__ == '__main__':
     app.run(debug=True, port=5005)

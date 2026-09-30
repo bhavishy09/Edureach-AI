@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Lock, BarChart, BookOpen, AlertCircle, Info, RefreshCw, Layers } from 'lucide-react';
 import { auth } from '../../lib/firebase';
 import { trackActivity } from '../../utils/trackActivity';
+import { apiUrl } from '../../lib/api';
 
 export default function PYQAnalysis() {
   const [availableSubjects, setAvailableSubjects] = useState([]);
@@ -13,7 +14,7 @@ export default function PYQAnalysis() {
 
   useEffect(() => {
     // Fetch available subjects
-    fetch('/api/pyq/available-subjects')
+    fetch(apiUrl('/api/pyq/available-subjects'))
       .then(res => res.json())
       .then(data => {
         setAvailableSubjects(data);
@@ -24,7 +25,7 @@ export default function PYQAnalysis() {
   const handleFetchAnalysis = () => {
     setLoading(true);
     setResults(null);
-    fetch(`/api/pyq/results?class_level=${classLevel}&subject=${subject.toLowerCase()}`)
+    fetch(apiUrl(`/api/pyq/results?class_level=${classLevel}&subject=${subject.toLowerCase()}`))
       .then(res => res.json())
       .then(data => {
         setResults(data);
